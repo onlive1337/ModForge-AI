@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ModCard } from './ModCard';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { ModItem } from '@/types';
+import type { ModItem } from '../types';
 import { Button } from './ui/button';
 
 interface CollapsibleSectionProps {

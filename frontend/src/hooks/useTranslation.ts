@@ -1,5 +1,5 @@
 import { useLanguage } from './useLanguage';
-import { translations } from '@/locales';
+import { translations } from '../locales';
 
 export function useTranslation() {
   const { language, setLanguage } = useLanguage();

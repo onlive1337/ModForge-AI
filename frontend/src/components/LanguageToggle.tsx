@@ -1,4 +1,4 @@
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation } from '../hooks/useTranslation';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 

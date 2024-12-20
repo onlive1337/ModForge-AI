@@ -1,8 +1,8 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Download } from 'lucide-react';
-import type { ModItem } from '@/types';
-import { useTranslation } from '@/hooks/useTranslation';
+import type { ModItem } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ModCardProps {
   item: ModItem & {
