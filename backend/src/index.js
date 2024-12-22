@@ -7,7 +7,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://onlive.is-a.dev/ModForge-AI/', 'http://localhost:5173'], // Добавьте URL вашего фронтенда
+  methods: ['GET', 'POST'],
+  credentials: false
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -29,5 +34,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
 });
