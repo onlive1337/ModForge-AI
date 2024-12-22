@@ -21,9 +21,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const uniqueItems = items.reduce((acc: ModItem[], current) => {
+    const isDuplicate = acc.find(item => item.projectId === current.projectId);
+    if (!isDuplicate) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+
+  const totalPages = Math.ceil(uniqueItems.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const visibleItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const visibleItems = uniqueItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const nextPage = () => {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
@@ -43,7 +51,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div className="flex items-center gap-2">
           {icon}
           <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-          <span className="text-sm text-muted-foreground">({items.length})</span>
+          <span className="text-sm text-muted-foreground">({uniqueItems.length})</span>
         </div>
         {isExpanded ? (
           <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -60,7 +68,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       >
         <div className="p-4 sm:p-6 grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {visibleItems.map(item => (
-            <ModCard key={item.projectId} item={item} />
+            <ModCard key={`${item.projectId}-${item.slug}`} item={item} />
           ))}
         </div>
 

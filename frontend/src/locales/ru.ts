@@ -14,18 +14,25 @@ export const ru = {
  downloads: 'загрузок',
  download: 'Скачать',
  requiredMods: 'Требуемые моды',
+ optionalMods: 'Опциональные моды',
  by: 'от',
  errors: {
    generation: 'Ошибка при генерации сборки',
    default: 'Произошла ошибка'
  },
- versions: {
-   label: 'Версия',
-   '1.20.1': 'Minecraft 1.20.1',
-   '1.19.4': 'Minecraft 1.19.4',
-   '1.18.2': 'Minecraft 1.18.2',
-   '1.16.5': 'Minecraft 1.16.5'
- },
+ version: {
+  search: 'Поиск версии...',
+  notFound: 'Версия не найдена',
+  releases: 'Список версий',
+  changelog: 'История изменений',
+  copyright: '© 2024 ModForge AI. Все права защищены.'
+},
+loader: {
+  forge: 'Forge',
+  fabric: 'Fabric',
+  quilt: 'Quilt',
+  neoforge: 'NeoForge'
+},
  theme: {
    light: 'Светлая тема',
    dark: 'Темная тема'

@@ -14,18 +14,25 @@ export const en = {
  downloads: 'downloads',
  download: 'Download',
  requiredMods: 'Required Mods',
+ optionalMods: 'Optional Mods',
  by: 'by',
  errors: {
    generation: 'Failed to generate modpack',
    default: 'An error occurred'
  },
- versions: {
-   label: 'Version',
-   '1.20.1': 'Minecraft 1.20.1',
-   '1.19.4': 'Minecraft 1.19.4',
-   '1.18.2': 'Minecraft 1.18.2',
-   '1.16.5': 'Minecraft 1.16.5'
- },
+ version: {
+  search: 'Search version...',
+  notFound: 'No version found',
+  releases: 'Release Notes',
+  changelog: 'Changelog',
+  copyright: '© 2024 ModForge AI. All rights reserved.'
+},
+loader: {
+  forge: 'Forge',
+  fabric: 'Fabric',
+  quilt: 'Quilt',
+  neoforge: 'NeoForge'
+},
  theme: {
    light: 'Light theme',
    dark: 'Dark theme'

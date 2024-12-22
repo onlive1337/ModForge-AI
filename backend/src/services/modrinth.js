@@ -10,15 +10,21 @@ class ModrinthService {
     });
   }
 
-  async searchMods(query, version, limit = 25) {
+  async searchMods(query, version, loader, limit = 25) {
     try {
+      const facets = [
+        [`versions:${version}`],
+        ['project_type:mod']
+      ];
+
+      if (loader) {
+        facets.push([`categories:${loader}`]);
+      }
+
       const response = await this.api.get('/search', {
         params: {
           query,
-          facets: JSON.stringify([
-            ["versions:" + version],
-            ["project_type:mod"]
-          ]),
+          facets: JSON.stringify(facets),
           limit
         }
       });
@@ -36,8 +42,8 @@ class ModrinthService {
         params: {
           query,
           facets: JSON.stringify([
-            ["versions:" + version],
-            ["project_type:resourcepack"]
+            [`versions:${version}`],
+            ['project_type:resourcepack']
           ]),
           limit
         }
@@ -56,8 +62,8 @@ class ModrinthService {
         params: {
           query,
           facets: JSON.stringify([
-            ["versions:" + version],
-            ["project_type:shader"]
+            [`versions:${version}`],
+            ['project_type:shader']
           ]),
           limit
         }
@@ -77,6 +83,21 @@ class ModrinthService {
     } catch (error) {
       console.error('Error getting mod dependencies:', error);
       return [];
+    }
+  }
+
+  async getVersionInfo(modId, gameVersion, loader) {
+    try {
+      const response = await this.api.get(`/project/${modId}/version`, {
+        params: {
+          game_versions: [gameVersion],
+          loaders: [loader]
+        }
+      });
+      return response.data[0] || null;
+    } catch (error) {
+      console.error('Error getting version info:', error);
+      return null;
     }
   }
 }

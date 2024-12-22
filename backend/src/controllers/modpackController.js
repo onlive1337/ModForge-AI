@@ -3,61 +3,91 @@ const modrinthService = require('../services/modrinth');
 
 exports.generateModpackFromPrompt = async (req, res) => {
   try {
-    const { prompt, minecraftVersion = "1.20.1" } = req.body;
+    const { prompt, minecraftVersion = "1.20.1", modLoader = "forge" } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     const analysis = await analyzePromptWithAI(prompt);
+    const requestedModCount = analysis.requestedModCount;
+
+    const fetchMods = async (terms, limit) => {
+      const modsArrays = await Promise.all(
+        terms.map(term => modrinthService.searchMods(term, minecraftVersion, modLoader, limit))
+      );
+      
+      const uniqueMods = Array.from(
+        new Map(modsArrays.flat().map(mod => [mod.project_id, mod])).values()
+      );
+
+      return uniqueMods;
+    };
+
+
+    let modsLimit = 25;
+    if (requestedModCount) {
+      modsLimit = Math.ceil(requestedModCount / analysis.searchTerms.length);
+    }
+
+    const allMods = await fetchMods(analysis.searchTerms, modsLimit);
+
+    let finalMods = allMods;
+    if (requestedModCount) {
+      finalMods = allMods.slice(0, requestedModCount);
+    }
+
+    const modsWithDependencies = await Promise.all(
+      finalMods.map(async (mod) => {
+        try {
+          const versionInfo = await modrinthService.getVersionInfo(mod.project_id, minecraftVersion, modLoader);
+          const dependencies = await modrinthService.getModDependencies(mod.project_id);
+          
+          return {
+            name: mod.title,
+            description: mod.description,
+            downloads: mod.downloads,
+            projectId: mod.project_id,
+            slug: mod.slug,
+            author: mod.author,
+            type: 'mod',
+            version: versionInfo?.version_number,
+            dependencies: dependencies.map(dep => ({
+              name: dep.project_name || dep.dependency_id,
+              slug: dep.project_id,
+              required: dep.dependency_type === 'required'
+            }))
+          };
+        } catch (error) {
+          console.error(`Error processing mod ${mod.title}:`, error);
+          return null;
+        }
+      })
+    );
+
     const result = {
       prompt,
       minecraftVersion,
+      modLoader,
+      requestedModCount,
       analysis: {
         features: analysis.features,
-        modTypes: analysis.modTypes
+        theme: analysis.modTypes[0]
       },
-      mods: [],
+      mods: modsWithDependencies.filter(Boolean).sort((a, b) => b.downloads - a.downloads),
       resourcePacks: [],
       shaders: [],
       notFound: []
     };
 
-    if (analysis.searchTerms.length > 0) {
-      const modsArrays = await Promise.all(
-        analysis.searchTerms.map(term => modrinthService.searchMods(term, minecraftVersion))
-      );
-      const uniqueMods = Array.from(
-        new Map(modsArrays.flat().map(mod => [mod.project_id, mod])).values()
-      ).sort((a, b) => b.downloads - a.downloads);
-
-      if (uniqueMods.length === 0) {
-        result.notFound.push('mods');
-      } else {
-        result.mods = uniqueMods.map(mod => ({
-          name: mod.title,
-          description: mod.description,
-          downloads: mod.downloads,
-          projectId: mod.project_id,
-          slug: mod.slug,
-          author: mod.author,
-          type: 'mod'
-        }));
-      }
-    }
-
     if (analysis.resourcePacks?.length > 0) {
-      const resourceArrays = await Promise.all(
-        analysis.resourcePacks.map(term => modrinthService.searchResourcePacks(term, minecraftVersion))
+      const packs = await Promise.all(
+        analysis.resourcePacks.map(term => 
+          modrinthService.searchResourcePacks(term, minecraftVersion)
+        )
       );
-      const uniquePacks = Array.from(
-        new Map(resourceArrays.flat().map(pack => [pack.project_id, pack])).values()
-      ).sort((a, b) => b.downloads - a.downloads);
-
-      if (uniquePacks.length === 0) {
-        result.notFound.push('resourcepacks');
-      } else {
-        result.resourcePacks = uniquePacks.map(pack => ({
+      result.resourcePacks = packs.flat()
+        .map(pack => ({
           name: pack.title,
           description: pack.description,
           downloads: pack.downloads,
@@ -65,23 +95,19 @@ exports.generateModpackFromPrompt = async (req, res) => {
           slug: pack.slug,
           author: pack.author,
           type: 'resourcepack'
-        }));
-      }
+        }))
+        .sort((a, b) => b.downloads - a.downloads)
+        .slice(0, 5);
     }
 
     if (analysis.shaders?.length > 0) {
-      const shaderArrays = await Promise.all(
-        analysis.shaders.map(term => modrinthService.searchShaders(term, minecraftVersion))
+      const shaders = await Promise.all(
+        analysis.shaders.map(term => 
+          modrinthService.searchShaders(term, minecraftVersion)
+        )
       );
-      const uniqueShaders = Array.from(
-        new Map(shaderArrays.flat().map(shader => [shader.project_id, shader])).values()
-      ).sort((a, b) => b.downloads - a.downloads)
-      .slice(0, 3);
-
-      if (uniqueShaders.length === 0) {
-        result.notFound.push('shaders');
-      } else {
-        result.shaders = uniqueShaders.map(shader => ({
+      result.shaders = shaders.flat()
+        .map(shader => ({
           name: shader.title,
           description: shader.description,
           downloads: shader.downloads,
@@ -89,8 +115,9 @@ exports.generateModpackFromPrompt = async (req, res) => {
           slug: shader.slug,
           author: shader.author,
           type: 'shader'
-        }));
-      }
+        }))
+        .sort((a, b) => b.downloads - a.downloads)
+        .slice(0, 3);
     }
 
     res.json(result);

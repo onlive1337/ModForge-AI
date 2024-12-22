@@ -24,6 +24,8 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
     --radius: 0.75rem;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
   }
 
   .dark {
@@ -46,6 +48,8 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
   }
 }
 
@@ -87,5 +91,15 @@
   to {
     max-height: 0;
     opacity: 0;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

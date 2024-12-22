@@ -36,3 +36,18 @@ export interface ModpackResponse {
   shaders?: ModItem[];
   notFound?: string[];
 }
+
+export type ModLoader = 'forge' | 'fabric' | 'quilt' | 'neoforge';
+
+export interface VersionOption {
+  version: string;
+  loaders: ModLoader[];
+}
+
+export interface LogEntry {
+  id: number;
+  message: string;
+  status: 'pending' | 'success' | 'error';
+  details?: string;
+  timestamp: string;
+}

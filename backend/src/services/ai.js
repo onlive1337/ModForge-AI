@@ -3,10 +3,34 @@ require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+function extractModCount(prompt) {
+  const patterns = [
+    /(\d+)\s*(mods?|модов|мода|модa)/i,
+    /модов\s*:\s*(\d+)/i,
+    /mods\s*:\s*(\d+)/i,
+    /количество\s*модов\s*:\s*(\d+)/i,
+    /number\s*of\s*mods\s*:\s*(\d+)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+    if (match && match[1]) {
+      const count = parseInt(match[1]);
+      if (!isNaN(count) && count > 0) {
+        return count;
+      }
+    }
+  }
+
+  return null;
+}
+
 const analyzePromptWithAI = async (prompt) => {
   try {
+    const requestedModCount = extractModCount(prompt);
+    
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-pro",
       safetySettings: [
         {
           category: 'HARM_CATEGORY_HARASSMENT',
@@ -27,31 +51,50 @@ const analyzePromptWithAI = async (prompt) => {
       ],
     });
 
-    const enhancedPrompt = `You are a Minecraft mod pack expert. Create a modpack based on this request: "${prompt}"
+    const enhancedPrompt = `You are a Minecraft modpack expert creating cohesive, well-balanced modpacks. 
+    Analyze this request: "${prompt}"
+    ${requestedModCount ? `The user requested ${requestedModCount} mods, try to stick to this number.` : ''}
 
-For your response, provide a JSON object with the following format:
-{
-  "features": [
-    "key features requested"
-  ],
-  "searchTerms": [
-    "specific mod names and search terms"
-  ],
-  "modTypes": [
-    "categories of mods needed"
-  ],
-  "requiredMods": [
-    "essential mods for this pack"
-  ],
-  "resourcePacks": [
-    "resource pack terms if requested"
-  ],
-  "shaders": [
-    "shader terms if requested"
-  ]
-}
+    Create a modpack where mods work together to create a cohesive experience.
+    Consider:
+    1. Core gameplay mechanics and how mods enhance each other
+    2. Balance between different mods
+    3. Common mod combinations that work well together
+    4. Required dependencies and core mods for the theme
+    5. Potential conflicts and compatibility
+    6. Performance impact
 
-Only return the JSON object, no additional text.`;
+    For your response, provide a JSON object with:
+    {
+      "requestedModCount": ${requestedModCount || "null"},
+      "theme": "Main theme/focus of the modpack",
+      "features": [
+        "Key gameplay features and mechanics"
+      ],
+      "coreMods": [
+        "Essential mods that form the base of the pack (around 30% of total mods)"
+      ],
+      "supportMods": [
+        "Mods that enhance and support the core mods"
+      ],
+      "utilityMods": [
+        "Performance and quality of life mods"
+      ],
+      "searchTerms": {
+        "required": ["Specific search terms for required mods"],
+        "optional": ["Search terms for optional content"]
+      },
+      "resourcePacks": [
+        "Specific resource packs that match the theme"
+      ],
+      "shaders": [
+        "Recommended shaders that fit the style"
+      ]
+    }
+
+    Only return the JSON object, no additional text.
+    Focus on creating a coherent experience where mods complement each other.
+    ${requestedModCount ? `Try to provide enough search terms to find approximately ${requestedModCount} mods in total.` : ''}`;
 
     const result = await model.generateContent(enhancedPrompt);
     const response = await result.response;
@@ -62,31 +105,23 @@ Only return the JSON object, no additional text.`;
     try {
       const aiResponse = JSON.parse(text);
       return {
+        requestedModCount: aiResponse.requestedModCount || null,
         features: aiResponse.features || [],
-        searchTerms: aiResponse.searchTerms || [],
-        modTypes: aiResponse.modTypes || [],
-        requiredMods: aiResponse.requiredMods || [],
+        searchTerms: [
+          ...(aiResponse.coreMods || []),
+          ...(aiResponse.supportMods || []),
+          ...(aiResponse.utilityMods || [])
+        ],
+        modTypes: [aiResponse.theme || 'general'],
+        requiredMods: aiResponse.coreMods || [],
         resourcePacks: aiResponse.resourcePacks || [],
         shaders: aiResponse.shaders || []
       };
     } catch (parseError) {
       console.error('JSON Parse error:', parseError);
-      console.error('Received text:', text);
       throw new Error('Failed to parse AI response');
     }
   } catch (error) {
-    if (error.message.includes('SAFETY')) {
-      console.error('Safety error:', error);
-      const words = prompt.toLowerCase().split(' ');
-      return {
-        features: [prompt],
-        searchTerms: words,
-        modTypes: ['general'],
-        requiredMods: [],
-        resourcePacks: [],
-        shaders: []
-      };
-    }
     console.error('AI Analysis error:', error);
     throw error;
   }

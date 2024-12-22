@@ -12,7 +12,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className="fixed top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full z-50"
+      className="fixed top-2 right-2 sm:top-4 sm:right-16 w-8 h-8 sm:w-10 sm:h-10 rounded-full z-50"
       title={theme === 'dark' ? t.theme.light : t.theme.dark}
     >
       <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
