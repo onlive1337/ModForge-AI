@@ -26,6 +26,8 @@ export function LanguageToggle() {
               ? "text-primary-foreground" 
               : "text-foreground/70 hover:text-foreground"
           )}
+          aria-label="Switch language to Russian"
+          aria-pressed={language === 'ru'}
         >
           RU
         </button>
@@ -38,6 +40,8 @@ export function LanguageToggle() {
               ? "text-primary-foreground" 
               : "text-foreground/70 hover:text-foreground"
           )}
+          aria-label="Switch language to English"
+          aria-pressed={language === 'en'}
         >
           EN
         </button>

@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Download } from 'lucide-react';
 import type { ModItem } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
-import { Card } from './ui/card';
 
 interface ModCardProps {
   item: ModItem & {
@@ -13,12 +12,13 @@ interface ModCardProps {
 
 export const ModCard: React.FC<ModCardProps> = ({ item }) => {
   const { t } = useTranslation();
-  
-  const requiredDeps = item.dependencies?.filter(dep => dep.required) || [];
-  const optionalDeps = item.dependencies?.filter(dep => !dep.required) || [];
+
+  const handleDependencyClick = (slug: string) => {
+    window.open(`https://modrinth.com/mod/${slug}`, '_blank');
+  };
 
   return (
-    <Card className="p-4 hover:border-primary/20 transition-colors">
+    <div className="p-4 rounded-lg bg-card border border-border hover:border-primary/20 transition-colors">
       <div className="flex flex-col h-full">
         <div className="flex-1">
           <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
@@ -27,50 +27,21 @@ export const ModCard: React.FC<ModCardProps> = ({ item }) => {
             {item.description}
           </p>
           
-          {requiredDeps.length > 0 && (
-            <div className="mt-3 p-2 bg-muted/50 rounded-md">
-              <p className="text-sm font-medium mb-1 text-foreground">
-                {t.requiredMods}:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {requiredDeps.map((dep, index) => (
+          {item.dependencies && item.dependencies.length > 0 && (
+            <div className="mt-3 p-2 bg-muted/50 rounded-md" aria-label="Required mods">
+              <p className="text-sm font-medium mb-1 text-foreground">{t.requiredMods}:</p>
+              <div className="flex flex-wrap gap-1.5" role="list">
+                {item.dependencies.map((dep, index) => (
                   <span 
-                    key={index} 
-                    className="inline-flex items-center text-xs px-2 py-1 bg-background rounded-full text-foreground group"
+                    key={`${dep.name}-${index}`}
+                    className="inline-flex items-center text-xs px-2 py-1 bg-background rounded-full text-foreground"
                   >
                     {dep.slug ? (
                       <Button
                         variant="link"
                         className="p-0 h-auto text-xs text-primary hover:text-primary/80 transition-colors"
-                        onClick={() => window.open(`https://modrinth.com/mod/${dep.slug}`, '_blank')}
-                      >
-                        {dep.name}
-                      </Button>
-                    ) : (
-                      dep.name
-                    )}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {optionalDeps.length > 0 && (
-            <div className="mt-2 p-2 bg-muted/30 rounded-md">
-              <p className="text-sm font-medium mb-1 text-muted-foreground">
-                Опциональные моды:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {optionalDeps.map((dep, index) => (
-                  <span 
-                    key={index} 
-                    className="inline-flex items-center text-xs px-2 py-1 bg-background/50 rounded-full text-muted-foreground"
-                  >
-                    {dep.slug ? (
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto text-xs text-primary/80 hover:text-primary transition-colors"
-                        onClick={() => window.open(`https://modrinth.com/mod/${dep.slug}`, '_blank')}
+                        onClick={() => handleDependencyClick(dep.slug!)}
+                        aria-label={`Open ${dep.name} mod page`}
                       >
                         {dep.name}
                       </Button>
@@ -85,7 +56,7 @@ export const ModCard: React.FC<ModCardProps> = ({ item }) => {
         </div>
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground" aria-label="Download count">
             {item.downloads.toLocaleString()} {t.downloads}
           </span>
           <Button
@@ -93,12 +64,13 @@ export const ModCard: React.FC<ModCardProps> = ({ item }) => {
             variant="secondary"
             size="sm"
             className="gap-2"
+            aria-label={`Download ${item.name}`}
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{t.download}</span>
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
