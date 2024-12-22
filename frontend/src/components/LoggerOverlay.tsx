@@ -42,39 +42,54 @@ export function LoggerOverlay({ isVisible, logs }: LoggerOverlayProps) {
                 className="relative"
               >
                 <div className="flex items-start gap-3">
-                  {log.status === 'pending' && (
-                    <div className="w-5 h-5 mt-0.5">
-                      <motion.div
-                        className="w-2 h-2 bg-blue-500 rounded-full"
-                        animate={{
-                          scale: [1, 1.5, 1],
-                          opacity: [1, 0.5, 1],
-                        }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                        }}
-                      />
-                    </div>
-                  )}
+                  <div className="w-4 h-4 mt-0.5 relative flex items-center justify-center flex-shrink-0">
+
                   {log.status === 'success' && (
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                    </motion.div>
-                  )}
-                  {log.status === 'error' && (
+                        animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8],
+                        }}
+                        transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                        }}
+                        className="w-2 h-2 rounded-full bg-green-500"
+                    />
+                    )}
+
+                    {log.status === 'pending' && (
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-red-500" />
-                    </motion.div>
-                  )}
+                        className="w-2 h-2 bg-blue-500 rounded-full"
+                        animate={{
+                        scale: [1, 1.5, 1],
+                        opacity: [1, 0.5, 1],
+                        }}
+                        transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                        }}
+                    />
+                    )}
+
+                    {log.status === 'error' && (
+                    <motion.div
+                        animate={{ 
+                        scale: [1, 1.3, 1],
+                        rotate: [0, 10, -10, 0],
+                        opacity: [0.7, 1, 0.7]
+                        }}
+                        transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                        }}
+                        className="w-2 h-2 rounded-full bg-red-500"
+                    />
+                    )}
+                  </div>
                   
                   <div className="flex-1 min-w-0">
                     <p className={cn(
