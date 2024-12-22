@@ -81,7 +81,7 @@ const VersionInfo: React.FC<VersionInfoProps> = () => {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-xs"
-                    onClick={() => window.open(`${GITHUB_URL}/blob/main/CHANGELOG.md`, '_blank')}
+                    onClick={() => window.open(`${GITHUB_URL}/blob/main/changelog.md`, '_blank')}
                   >
                     <History className="w-4 h-4 mr-1.5" />
                     {t.version.changelog}
