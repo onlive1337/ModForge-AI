@@ -69,14 +69,14 @@ function App() {
         </div>
 
         <div className="max-w-3xl mx-auto mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-3">
             <div className="relative w-full sm:w-auto">
               <select
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
-                className="w-full sm:w-[180px] h-[46px] px-4 rounded-lg border dark:bg-[#1A1D2A] bg-card border-border 
-                          text-foreground focus:outline-none focus:ring-2 ring-primary/20 appearance-none 
-                          cursor-pointer text-base font-medium"
+                className="w-full sm:w-[180px] h-12 sm:h-[46px] px-4 rounded-lg border dark:bg-[#1A1D2A] bg-card 
+                          border-border text-foreground focus:outline-none focus:ring-2 ring-primary/20
+                          appearance-none cursor-pointer text-base font-medium"
                 style={{
                   paddingRight: '2.5rem'
                 }}
@@ -109,14 +109,15 @@ function App() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={t.placeholder}
-              className="flex-1 h-[46px] px-4 rounded-lg border dark:bg-[#1A1D2A] bg-card border-border 
-                        text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ring-primary/20"
+              className="flex-1 h-12 sm:h-[46px] px-4 rounded-lg border dark:bg-[#1A1D2A] bg-card
+              border-border text-foreground placeholder:text-muted-foreground focus:outline-none
+              focus:ring-2 ring-primary/20 text-[16px] sm:text-base p-4 min-h-[50px] sm:min-h-[46px]" 
             />
             
             <Button
               onClick={generateModpack}
               disabled={loading}
-              className="h-[46px] sm:w-auto whitespace-nowrap px-6"
+              className="h-12 sm:h-[46px] sm:w-auto whitespace-nowrap px-6"
             >
               {loading ? (
                 <>
