@@ -8,15 +8,23 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['https://onlive.is-a.dev/ModForge-AI/', 'http://localhost:5173'], // Добавьте URL вашего фронтенда
-  methods: ['GET', 'POST'],
-  credentials: false
+  origin: [
+    'https://onlive.is-a.dev',
+    'https://onlive1337.github.io',
+    'http://localhost:5173'
+  ],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  optionsSuccessStatus: 204
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', modpackRoutes);
+
+app.options('*', cors());
 
 app.get('/', (req, res) => {
   res.json({ status: 'ModForge AI API is running' });
