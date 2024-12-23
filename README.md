@@ -130,7 +130,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [Live Demo](https://your-demo-link.com)
+- [Live Demo](https://onlive.is-a.dev/ModForge-AI/)
 - [Bug Report](https://github.com/onlive1337/modforge-ai/issues)
 
 ---
