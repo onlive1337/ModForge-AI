@@ -8,95 +8,146 @@ class ModrinthService {
         'User-Agent': 'ModForge-AI/1.0'
       }
     });
+    this.requestDelay = 200;
+    this.lastRequestTime = 0;
+    this.retryCount = 3;
   }
 
-  async searchMods(query, version, loader, limit = 25) {
-    try {
-      const facets = [
-        [`versions:${version}`],
-        ['project_type:mod']
-      ];
+  async delayRequest() {
+    const now = Date.now();
+    const timeElapsed = now - this.lastRequestTime;
+    if (timeElapsed < this.requestDelay) {
+      await new Promise(resolve => setTimeout(resolve, this.requestDelay - timeElapsed));
+    }
+    this.lastRequestTime = Date.now();
+  }
 
-      if (loader) {
-        facets.push([`categories:${loader}`]);
+  async retryRequest(fn, retries = this.retryCount) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fn();
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        const delay = Math.pow(2, i) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
+    }
+  }
 
-      const response = await this.api.get('/search', {
-        params: {
-          query,
-          facets: JSON.stringify(facets),
-          limit
-        }
-      });
+  async searchMods(query, version, loader = "forge", limit = 25) {
+    try {
+      await this.delayRequest();
+      
+      const facets = [];
+      facets.push(["project_type:mod"]);
+      if (version) facets.push([`versions:${version}`]);
+      if (loader) facets.push([`categories:${loader.toLowerCase()}`]);
 
-      return response.data.hits;
+      const searchParams = {
+        query: query || ' ',
+        facets: JSON.stringify(facets),
+        limit: Math.min(limit, 100)
+      };
+
+      console.log('Search params:', searchParams);
+
+      const response = await this.retryRequest(() => 
+        this.api.get('/search', { params: searchParams })
+      );
+
+      return (response.data.hits || []).map(hit => ({
+        ...hit,
+        type: 'mod'
+      }));
     } catch (error) {
-      console.error('Modrinth search error:', error);
+      console.error('Modrinth search error:', error.message, error.response?.data);
       return [];
     }
   }
 
   async searchResourcePacks(query, version, limit = 10) {
     try {
-      const response = await this.api.get('/search', {
-        params: {
-          query,
-          facets: JSON.stringify([
-            [`versions:${version}`],
-            ['project_type:resourcepack']
-          ]),
-          limit
-        }
-      });
+      await this.delayRequest();
+      
+      const facets = [];
+      facets.push(["project_type:resourcepack"]);
+      if (version) facets.push([`versions:${version}`]);
 
-      return response.data.hits;
+      const response = await this.retryRequest(() =>
+        this.api.get('/search', {
+          params: {
+            query: query || ' ',
+            facets: JSON.stringify(facets),
+            limit: Math.min(limit, 100)
+          }
+        })
+      );
+
+      return (response.data.hits || []).map(hit => ({
+        ...hit,
+        type: 'resourcepack'
+      }));
     } catch (error) {
-      console.error('Modrinth search error:', error);
+      console.error('Modrinth resource pack search error:', error.message, error.response?.data);
       return [];
     }
   }
 
   async searchShaders(query, version, limit = 10) {
     try {
-      const response = await this.api.get('/search', {
-        params: {
-          query,
-          facets: JSON.stringify([
-            [`versions:${version}`],
-            ['project_type:shader']
-          ]),
-          limit
-        }
-      });
+      await this.delayRequest();
+      
+      const facets = [];
+      facets.push(["project_type:shader"]);
+      if (version) facets.push([`versions:${version}`]);
 
-      return response.data.hits;
+      const response = await this.retryRequest(() =>
+        this.api.get('/search', {
+          params: {
+            query: query || ' ',
+            facets: JSON.stringify(facets),
+            limit: Math.min(limit, 100)
+          }
+        })
+      );
+
+      return (response.data.hits || []).map(hit => ({
+        ...hit,
+        type: 'shader'
+      }));
     } catch (error) {
-      console.error('Modrinth search error:', error);
+      console.error('Modrinth shader search error:', error.message, error.response?.data);
       return [];
     }
   }
 
   async getModDependencies(modId) {
     try {
-      const response = await this.api.get(`/project/${modId}`);
+      await this.delayRequest();
+      const response = await this.retryRequest(() =>
+        this.api.get(`/project/${modId}`)
+      );
       return response.data.dependencies || [];
     } catch (error) {
-      console.error('Error getting mod dependencies:', error);
+      console.error('Modrinth dependencies error:', error.message);
       return [];
     }
   }
 
   async getVersionInfo(modId, gameVersion, loader) {
     try {
-      const response = await this.api.get(`/project/${modId}/version`, {
-        params: {
-          game_versions: [gameVersion],
-          loaders: [loader]
-        }
-      });
+      await this.delayRequest();
+      const response = await this.retryRequest(() =>
+        this.api.get(`/project/${modId}/version`, {
+          params: {
+            game_versions: [gameVersion],
+            loaders: [loader]
+          }
+        })
+      );
       return response.data[0] || null;
     } catch (error) {
-      console.error('Error getting version info:', error);
+      console.error('Modrinth version info error:', error.message);
       return null;
     }
   }

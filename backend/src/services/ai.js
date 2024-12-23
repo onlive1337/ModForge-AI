@@ -3,31 +3,29 @@ require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-function extractModCount(prompt) {
-  const patterns = [
-    /(\d+)\s*(mods?|модов|мода|модa)/i,
-    /модов\s*:\s*(\d+)/i,
-    /mods\s*:\s*(\d+)/i,
-    /количество\s*модов\s*:\s*(\d+)/i,
-    /number\s*of\s*mods\s*:\s*(\d+)/i
-  ];
+function cleanJsonString(str) {
+  try {
+    str = str.replace(/```json\n?|\n?```/g, '')
+      .replace(/(\w)'(\w)/g, '$1$2')
+      .replace(/(\w)'s\s/g, '$1s ')
+      .replace(/[^\x20-\x7E]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-  for (const pattern of patterns) {
-    const match = prompt.match(pattern);
-    if (match && match[1]) {
-      const count = parseInt(match[1]);
-      if (!isNaN(count) && count > 0) {
-        return count;
-      }
-    }
+    const start = str.indexOf('{');
+    const end = str.lastIndexOf('}') + 1;
+    str = str.slice(start, end);
+
+    JSON.parse(str);
+    return str;
+  } catch (error) {
+    throw new Error(`Invalid JSON: ${error.message}`);
   }
-
-  return null;
 }
 
 const analyzePromptWithAI = async (prompt) => {
   try {
-    const requestedModCount = extractModCount(prompt);
+    const modCount = prompt.match(/\d+/)?.[0] || 25;
     
     const model = genAI.getGenerativeModel({ 
       model: "gemini-pro",
@@ -51,79 +49,115 @@ const analyzePromptWithAI = async (prompt) => {
       ],
     });
 
-    const enhancedPrompt = `You are a Minecraft modpack expert creating cohesive, well-balanced modpacks. 
-    Analyze this request: "${prompt}"
-    ${requestedModCount ? `The user requested ${requestedModCount} mods, try to stick to this number.` : ''}
+    const enhancedPrompt = `You are a Minecraft modpack expert. Create a coherent modpack with ${modCount} mods based on: "${prompt}"
 
-    Create a modpack where mods work together to create a cohesive experience.
-    Consider:
-    1. Core gameplay mechanics and how mods enhance each other
-    2. Balance between different mods
-    3. Common mod combinations that work well together
-    4. Required dependencies and core mods for the theme
-    5. Potential conflicts and compatibility
-    6. Performance impact
+Consider:
+1. Core functionality (10-15% of mods):
+   - Essential libraries and APIs
+   - Base mods that others depend on
+   - Performance optimizations
+   - Core mechanics mods
 
-    For your response, provide a JSON object with:
-    {
-      "requestedModCount": ${requestedModCount || "null"},
-      "theme": "Main theme/focus of the modpack",
-      "features": [
-        "Key gameplay features and mechanics"
-      ],
-      "coreMods": [
-        "Essential mods that form the base of the pack (around 30% of total mods)"
-      ],
-      "supportMods": [
-        "Mods that enhance and support the core mods"
-      ],
-      "utilityMods": [
-        "Performance and quality of life mods"
-      ],
-      "searchTerms": {
-        "required": ["Specific search terms for required mods"],
-        "optional": ["Search terms for optional content"]
-      },
-      "resourcePacks": [
-        "Specific resource packs that match the theme"
-      ],
-      "shaders": [
-        "Recommended shaders that fit the style"
-      ]
-    }
+2. Main theme mods (40-50%):
+   - Major content mods that work together
+   - Primary mechanics that complement each other
+   - Main features that define the pack
 
-    Only return the JSON object, no additional text.
-    Focus on creating a coherent experience where mods complement each other.
-    ${requestedModCount ? `Try to provide enough search terms to find approximately ${requestedModCount} mods in total.` : ''}`;
+3. Integration mods (20-30%):
+   - Addons that connect main mods
+   - Compatibility patches
+   - Extensions that enhance main mods
+
+4. Supporting mods (10-20%):
+   - Quality of life improvements
+   - Interface enhancements
+   - Small utilities that complement main features
+
+For each mod category:
+- Ensure mods work together and have compatible mechanics
+- Consider mod dependencies and required libraries
+- Avoid conflicting or redundant functionality
+- Focus on stable, well-maintained mods
+- Consider load order and performance impact
+
+Return a JSON object in this format:
+{
+  "features": ["core gameplay features"],
+  "searchTerms": ["main content mods"],
+  "modTypes": ["mod categories"],
+  "requiredMods": ["core/library mods"],
+  "resourcePacks": ["matching resource packs"],
+  "shaders": ["compatible shaders"]
+}
+
+Make sure all features and mods are tightly integrated and support each other to create a cohesive gameplay experience.
+IMPORTANT: The sum of searchTerms + requiredMods should be close to ${modCount}.`;
 
     const result = await model.generateContent(enhancedPrompt);
-    const response = await result.response;
+    const response = result.response;
     let text = response.text();
-
-    text = text.replace(/```json\n?|\n?```/g, '').trim();
     
+    let parsed;
     try {
-      const aiResponse = JSON.parse(text);
-      return {
-        requestedModCount: aiResponse.requestedModCount || null,
-        features: aiResponse.features || [],
-        searchTerms: [
-          ...(aiResponse.coreMods || []),
-          ...(aiResponse.supportMods || []),
-          ...(aiResponse.utilityMods || [])
-        ],
-        modTypes: [aiResponse.theme || 'general'],
-        requiredMods: aiResponse.coreMods || [],
-        resourcePacks: aiResponse.resourcePacks || [],
-        shaders: aiResponse.shaders || []
-      };
-    } catch (parseError) {
-      console.error('JSON Parse error:', parseError);
-      throw new Error('Failed to parse AI response');
+      parsed = JSON.parse(cleanJsonString(text));
+    } catch (error) {
+      console.error('Failed to parse AI response:', error);
+      throw new Error('Invalid AI response format');
     }
+
+    const totalMods = (parsed.searchTerms?.length || 0) + (parsed.requiredMods?.length || 0);
+    const targetMods = parseInt(modCount);
+    
+    if (totalMods > targetMods) {
+      const ratio = parsed.searchTerms.length / totalMods;
+      const newSearchTermsCount = Math.floor(targetMods * ratio);
+      parsed.searchTerms = parsed.searchTerms.slice(0, newSearchTermsCount);
+      parsed.requiredMods = parsed.requiredMods.slice(0, targetMods - newSearchTermsCount);
+    } else if (totalMods < targetMods) {
+      const remaining = targetMods - totalMods;
+      const genericMods = [
+        "performance optimization",
+        "quality of life",
+        "utility",
+        "interface enhancement",
+        "storage management"
+      ];
+      
+      while (parsed.searchTerms.length < targetMods - parsed.requiredMods.length) {
+        parsed.searchTerms.push(genericMods[parsed.searchTerms.length % genericMods.length]);
+      }
+    }
+
+    return {
+      features: parsed.features || [],
+      searchTerms: parsed.searchTerms || [],
+      modTypes: parsed.modTypes || [],
+      requiredMods: parsed.requiredMods || [],
+      resourcePacks: parsed.resourcePacks || ["Faithful", "Default Dark"],
+      shaders: parsed.shaders || ["BSL", "Complementary"]
+    };
   } catch (error) {
     console.error('AI Analysis error:', error);
-    throw error;
+    
+    const defaultCount = parseInt(prompt.match(/\d+/)?.[0] || 25);
+    const defaultMods = [
+      "optimization",
+      "quality of life",
+      "utility",
+      "storage",
+      "interface enhancement"
+    ];
+
+    return {
+      features: ["Basic gameplay enhancements"],
+      searchTerms: Array(Math.max(defaultCount - 2, 3))
+        .fill(0)
+        .map((_, i) => defaultMods[i % defaultMods.length]),
+      modTypes: ["general"],
+      requiredMods: ["fabric-api", "architectury-api"],
+      resourcePacks: ["Faithful", "Default Dark"],
+      shaders: ["BSL", "Complementary"]
+    };
   }
 };
 

@@ -1,46 +1,71 @@
 const { analyzePromptWithAI } = require('../services/ai');
 const modrinthService = require('../services/modrinth');
+const TelegramLogger = require('../services/telegram');
+
+const telegram = new TelegramLogger();
 
 exports.generateModpackFromPrompt = async (req, res) => {
   try {
     const { prompt, minecraftVersion = "1.20.1", modLoader = "forge" } = req.body;
 
     if (!prompt) {
+      await telegram.logGeneration('Error', 'No prompt provided');
+      await telegram.sendFinalLog();
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const analysis = await analyzePromptWithAI(prompt);
-    const requestedModCount = analysis.requestedModCount;
+    await telegram.logGeneration('Request', `
+Prompt: ${prompt}
+Version: ${minecraftVersion}
+Loader: ${modLoader}`);
 
-    const fetchMods = async (terms, limit) => {
-      const modsArrays = await Promise.all(
-        terms.map(term => modrinthService.searchMods(term, minecraftVersion, modLoader, limit))
-      );
-      
-      const uniqueMods = Array.from(
-        new Map(modsArrays.flat().map(mod => [mod.project_id, mod])).values()
-      );
-
-      return uniqueMods;
-    };
-
-
-    let modsLimit = 25;
-    if (requestedModCount) {
-      modsLimit = Math.ceil(requestedModCount / analysis.searchTerms.length);
+    let analysis;
+    try {
+      analysis = await analyzePromptWithAI(prompt);
+      await telegram.logGeneration('AI Analysis', `Found ${analysis.searchTerms.length + analysis.requiredMods.length} total mods`);
+    } catch (error) {
+      await telegram.logGeneration('Error', `AI Analysis failed: ${error.message}`);
+      analysis = {
+        features: ["Basic gameplay enhancements"],
+        searchTerms: ["optimization", "utility", "storage"],
+        modTypes: ["general"],
+        requiredMods: ["fabric-api"],
+        resourcePacks: ["Faithful"],
+        shaders: ["BSL"]
+      };
     }
 
-    const allMods = await fetchMods(analysis.searchTerms, modsLimit);
+    await telegram.logGeneration('Mod Search', 'Starting mod search...');
+    const searchPromises = analysis.searchTerms.map(async term => {
+      try {
+        const mods = await modrinthService.searchMods(term, minecraftVersion, modLoader, 10);
+        await telegram.logGeneration('Search Result', `Found ${mods.length} mods for "${term}"`);
+        return mods;
+      } catch (error) {
+        await telegram.logGeneration('Warning', `Search failed for term "${term}": ${error.message}`);
+        return [];
+      }
+    });
 
-    let finalMods = allMods;
-    if (requestedModCount) {
-      finalMods = allMods.slice(0, requestedModCount);
-    }
+    const allMods = await Promise.all(searchPromises);
+    const foundMods = allMods.flat();
 
+    const uniqueMods = Array.from(
+      new Map(foundMods.map(mod => [mod.project_id, mod])).values()
+    );
+    await telegram.logGeneration('Processing', `Found ${uniqueMods.length} unique mods`);
+
+    await telegram.logGeneration('Dependencies', 'Checking mod dependencies...');
     const modsWithDependencies = await Promise.all(
-      finalMods.map(async (mod) => {
+      uniqueMods.map(async (mod) => {
         try {
           const versionInfo = await modrinthService.getVersionInfo(mod.project_id, minecraftVersion, modLoader);
+          
+          if (!versionInfo) {
+            await telegram.logGeneration('Warning', `No version info found for mod: ${mod.title}`);
+            return null;
+          }
+
           const dependencies = await modrinthService.getModDependencies(mod.project_id);
           
           return {
@@ -59,73 +84,114 @@ exports.generateModpackFromPrompt = async (req, res) => {
             }))
           };
         } catch (error) {
-          console.error(`Error processing mod ${mod.title}:`, error);
+          await telegram.logGeneration('Warning', `Error processing mod ${mod.title}: ${error.message}`);
           return null;
         }
       })
     );
 
+    const validMods = modsWithDependencies
+      .filter(mod => mod !== null)
+      .sort((a, b) => b.downloads - a.downloads);
+
+    await telegram.logGeneration('Mods', `Successfully processed ${validMods.length} mods`);
+
+    let resourcePacks = [];
+    if (analysis.resourcePacks?.length > 0) {
+      await telegram.logGeneration('Resource Packs', 'Searching for resource packs...');
+      const resourcePackPromises = analysis.resourcePacks.map(term => 
+        modrinthService.searchResourcePacks(term, minecraftVersion)
+      );
+
+      const resourcePackResults = await Promise.all(resourcePackPromises);
+      resourcePacks = Array.from(
+        new Map(
+          resourcePackResults
+            .flat()
+            .map(pack => [
+              pack.project_id,
+              {
+                name: pack.title,
+                description: pack.description,
+                downloads: pack.downloads,
+                projectId: pack.project_id,
+                slug: pack.slug,
+                author: pack.author,
+                type: 'resourcepack'
+              }
+            ])
+        ).values()
+      ).sort((a, b) => b.downloads - a.downloads)
+       .slice(0, 5);
+      
+      await telegram.logGeneration('Resource Packs', `Found ${resourcePacks.length} resource packs`);
+    }
+
+    let shaders = [];
+    if (analysis.shaders?.length > 0) {
+      await telegram.logGeneration('Shaders', 'Searching for shaders...');
+      const shaderPromises = analysis.shaders.map(term => 
+        modrinthService.searchShaders(term, minecraftVersion)
+      );
+
+      const shaderResults = await Promise.all(shaderPromises);
+      shaders = Array.from(
+        new Map(
+          shaderResults
+            .flat()
+            .map(shader => [
+              shader.project_id,
+              {
+                name: shader.title,
+                description: shader.description,
+                downloads: shader.downloads,
+                projectId: shader.project_id,
+                slug: shader.slug,
+                author: shader.author,
+                type: 'shader'
+              }
+            ])
+        ).values()
+      ).sort((a, b) => b.downloads - a.downloads)
+       .slice(0, 3);
+      
+      await telegram.logGeneration('Shaders', `Found ${shaders.length} shaders`);
+    }
+
+    const notFound = [];
+    if (validMods.length === 0) notFound.push('mods');
+    if (analysis.resourcePacks?.length > 0 && resourcePacks.length === 0) notFound.push('resourcepacks');
+    if (analysis.shaders?.length > 0 && shaders.length === 0) notFound.push('shaders');
+
     const result = {
       prompt,
       minecraftVersion,
       modLoader,
-      requestedModCount,
       analysis: {
         features: analysis.features,
         theme: analysis.modTypes[0]
       },
-      mods: modsWithDependencies.filter(Boolean).sort((a, b) => b.downloads - a.downloads),
-      resourcePacks: [],
-      shaders: [],
-      notFound: []
+      mods: validMods,
+      resourcePacks,
+      shaders,
+      notFound
     };
 
-    if (analysis.resourcePacks?.length > 0) {
-      const packs = await Promise.all(
-        analysis.resourcePacks.map(term => 
-          modrinthService.searchResourcePacks(term, minecraftVersion)
-        )
-      );
-      result.resourcePacks = packs.flat()
-        .map(pack => ({
-          name: pack.title,
-          description: pack.description,
-          downloads: pack.downloads,
-          projectId: pack.project_id,
-          slug: pack.slug,
-          author: pack.author,
-          type: 'resourcepack'
-        }))
-        .sort((a, b) => b.downloads - a.downloads)
-        .slice(0, 5);
-    }
+    await telegram.logGeneration('Result', `
+✅ Generation completed
+Mods: ${validMods.length}
+Resource Packs: ${resourcePacks.length}
+Shaders: ${shaders.length}
+${notFound.length > 0 ? `\nNot found: ${notFound.join(', ')}` : ''}`);
 
-    if (analysis.shaders?.length > 0) {
-      const shaders = await Promise.all(
-        analysis.shaders.map(term => 
-          modrinthService.searchShaders(term, minecraftVersion)
-        )
-      );
-      result.shaders = shaders.flat()
-        .map(shader => ({
-          name: shader.title,
-          description: shader.description,
-          downloads: shader.downloads,
-          projectId: shader.project_id,
-          slug: shader.slug,
-          author: shader.author,
-          type: 'shader'
-        }))
-        .sort((a, b) => b.downloads - a.downloads)
-        .slice(0, 3);
-    }
-
+    await telegram.sendFinalLog();
     res.json(result);
+
   } catch (error) {
-    console.error('Error generating modpack:', error);
+    await telegram.sendError(error);
     res.status(500).json({ 
       error: 'Error generating modpack', 
-      details: error.message 
+      message: error.message 
     });
   }
 };
