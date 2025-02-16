@@ -28,25 +28,7 @@ const analyzePromptWithAI = async (prompt) => {
     const modCount = prompt.match(/\d+/)?.[0] || 25;
     
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
-      safetySettings: [
-        {
-          category: 'HARM_CATEGORY_HARASSMENT',
-          threshold: 'BLOCK_NONE',
-        },
-        {
-          category: 'HARM_CATEGORY_HATE_SPEECH',
-          threshold: 'BLOCK_NONE',
-        },
-        {
-          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-          threshold: 'BLOCK_NONE',
-        },
-        {
-          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-          threshold: 'BLOCK_NONE',
-        },
-      ],
+      model: "gemini-2.0-flash",
     });
 
     const enhancedPrompt = `You are a Minecraft modpack expert. Create a coherent modpack with ${modCount} mods based on: "${prompt}"
