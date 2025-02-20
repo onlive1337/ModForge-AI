@@ -1,14 +1,16 @@
 import { useCallback, useState } from 'react';
 import { Button } from './components/ui/button';
 import { CollapsibleSection } from './components/CollapsibleSection';
-import { ThemeToggle } from './components/ThemeToggle';
-import { LanguageToggle } from './components/LanguageToggle';
 import { VersionSelect } from './components/VersionSelect';
 import { LoggerOverlay } from './components/LoggerOverlay';
+import { AuthDialog } from './components/auth/AuthDialog';
+import { Profile } from './components/Profile';
 import VersionInfo from './components/VersionInfo';
-import { Blocks, Palette, Sparkles, AlertCircle } from 'lucide-react';
+import { Blocks, Palette, Sparkles, AlertCircle, User } from 'lucide-react';
 import type { ModpackResponse, ModLoader, LogEntry } from './types';
 import { useTranslation } from './hooks/useTranslation';
+import { useAuthStore } from './stores/authStore';
+import { useUserSettings } from './hooks/useUserSettings';
 
 function App() {
   const [prompt, setPrompt] = useState('');
@@ -18,7 +20,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ModpackResponse | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const { t } = useTranslation();
+  const { user, token } = useAuthStore();
+  
+  useUserSettings();
 
   const addLog = useCallback((message: string, status: 'pending' | 'success' | 'error', details?: string) => {
     setLogs(current => {
@@ -46,12 +52,18 @@ function App() {
       await new Promise(r => setTimeout(r, 1000));
       addLog('Request analyzed successfully', 'success');
 
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       addLog('Searching for compatible mods...', 'pending');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/generate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ 
           prompt, 
           minecraftVersion: version,
@@ -101,9 +113,30 @@ function App() {
 
   return (
     <div className="min-h-screen bg-background theme-transition">
-      <ThemeToggle />
-      <LanguageToggle />
       <VersionInfo />
+
+      <div className="fixed top-2 sm:top-4 right-4 sm:right-6 z-50">
+        {user ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAuthOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <User className="w-4 h-4" />
+            <span className="hidden sm:inline">{user.username}</span>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAuthOpen(true)}
+          >
+            {t.auth.login}
+          </Button>
+        )}
+      </div>
+
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground mt-8 sm:mt-0">
@@ -115,46 +148,47 @@ function App() {
         </div>
 
         <div className="max-w-3xl mx-auto mb-6 sm:mb-8">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <VersionSelect
-              selectedVersion={version}
-              selectedLoader={loader}
-              onVersionChange={setVersion}
-              onLoaderChange={setLoader}
-            />
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <VersionSelect
+                  selectedVersion={version}
+                  selectedLoader={loader}
+                  onVersionChange={setVersion}
+                  onLoaderChange={setLoader}
+                />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder={t.placeholder}
+                  className="w-full h-12 sm:h-[46px] px-4 rounded-lg border 
+                            dark:bg-[#1A1D2A] bg-card border-border text-foreground 
+                            placeholder:text-muted-foreground focus:outline-none focus:ring-2 
+                            ring-primary/20 text-[16px] sm:text-base p-4"
+                />
+              </div>
+              
+              <Button
+                onClick={generateModpack}
+                disabled={loading}
+                className="w-full sm:w-auto h-12 sm:h-[46px] whitespace-nowrap px-6"
+              >
+                {t.generate}
+              </Button>
+            </div>
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={t.placeholder}
-              className="w-full h-12 sm:h-[46px] px-4 rounded-lg border 
-                        dark:bg-[#1A1D2A] bg-card border-border text-foreground 
-                        placeholder:text-muted-foreground focus:outline-none focus:ring-2 
-                        ring-primary/20 text-[16px] sm:text-base p-4"
-            />
-          </div>
-          
-          <Button
-            onClick={generateModpack}
-            disabled={loading}
-            className="w-full sm:w-auto h-12 sm:h-[46px] whitespace-nowrap px-6"
-          >
-            {t.generate}
-          </Button>
-        </div>
-      </div>
 
-  {error && (
-    <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg text-sm sm:text-base">
-      {error}
-    </div>
-  )}
-</div>
+          {error && (
+            <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg text-sm sm:text-base">
+              {error}
+            </div>
+          )}
+        </div>
+
         {result && (
           <>
             {result.notFound && result.notFound.length > 0 && (
@@ -214,6 +248,18 @@ function App() {
         isVisible={loading} 
         logs={logs}
       />
+
+      {user ? (
+        <Profile 
+          isOpen={isAuthOpen} 
+          onClose={() => setIsAuthOpen(false)} 
+        />
+      ) : (
+        <AuthDialog 
+          isOpen={isAuthOpen} 
+          onClose={() => setIsAuthOpen(false)} 
+        />
+      )}
     </div>
   );
 }

@@ -18,7 +18,9 @@ export const ru = {
  by: 'от',
  errors: {
    generation: 'Ошибка при генерации сборки',
-   default: 'Произошла ошибка'
+   default: 'Произошла ошибка',
+   login: 'Не удалось войти',
+   register: 'Не удалось создать аккаунт',
  },
  version: {
   search: 'Поиск версии...',
@@ -36,5 +38,33 @@ loader: {
  theme: {
    light: 'Светлая тема',
    dark: 'Темная тема'
- }
+ },
+ auth: {
+  loginTitle: 'С возвращением',
+  registerTitle: 'Создание аккаунта',
+  login: 'Войти',
+  register: 'Регистрация',
+  loggingIn: 'Выполняется вход...',
+  registering: 'Создание аккаунта...',
+  emailPlaceholder: 'Email',
+  passwordPlaceholder: 'Пароль',
+  usernamePlaceholder: 'Имя пользователя',
+},
+profile: {
+  title: 'Профиль',
+  accountInfo: 'Информация об аккаунте',
+  settings: 'Настройки',
+  username: 'Имя пользователя',
+  email: 'Email',
+  defaultLoader: 'Загрузчик модов по умолчанию',
+  defaultVersion: 'Версия Minecraft по умолчанию',
+  theme: 'Тема',
+  language: 'Язык',
+  selectLoader: 'Выберите загрузчик модов',
+  selectVersion: 'Выберите версию',
+  selectTheme: 'Выберите тему',
+  selectLanguage: 'Выберите язык',
+  systemTheme: 'Системная',
+  logout: 'Выйти'
+},
 };

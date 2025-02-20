@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const GITHUB_URL = 'https://github.com/onlive1337/ModForge-AI';
 
 interface VersionInfoProps {}

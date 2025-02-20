@@ -18,7 +18,9 @@ export const en = {
  by: 'by',
  errors: {
    generation: 'Failed to generate modpack',
-   default: 'An error occurred'
+   default: 'An error occurred',
+   login: 'Failed to log in',
+   register: 'Failed to create account',
  },
  version: {
   search: 'Search version...',
@@ -36,5 +38,33 @@ loader: {
  theme: {
    light: 'Light theme',
    dark: 'Dark theme'
- }
+ },
+ auth: {
+  loginTitle: 'Welcome Back',
+  registerTitle: 'Create Account',
+  login: 'Log In',
+  register: 'Register',
+  loggingIn: 'Logging in...',
+  registering: 'Creating account...',
+  emailPlaceholder: 'Email',
+  passwordPlaceholder: 'Password',
+  usernamePlaceholder: 'Username',
+},
+profile: {
+  title: 'Profile',
+  accountInfo: 'Account Information',
+  settings: 'Settings',
+  username: 'Username',
+  email: 'Email',
+  defaultLoader: 'Default Mod Loader',
+  defaultVersion: 'Default Minecraft Version',
+  theme: 'Theme',
+  language: 'Language',
+  selectLoader: 'Select a mod loader',
+  selectVersion: 'Select a version',
+  selectTheme: 'Select a theme',
+  selectLanguage: 'Select a language',
+  systemTheme: 'System',
+  logout: 'Log Out'
+},
 };

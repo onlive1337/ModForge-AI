@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const connectDB = require('./config/db');
 const modpackRoutes = require('./routes/modpack');
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
+
+connectDB();
 
 const app = express();
 
@@ -13,7 +17,7 @@ app.use(cors({
     'https://onlive1337.github.io',
     'http://localhost:5173'
   ],
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
   optionsSuccessStatus: 204
@@ -22,6 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/api/auth', authRoutes);
 app.use('/api', modpackRoutes);
 
 app.options('*', cors());

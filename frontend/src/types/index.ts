@@ -51,3 +51,25 @@ export interface LogEntry {
   details?: string;
   timestamp: string;
 }
+
+export interface UserSettings {
+  defaultLoader: 'forge' | 'fabric' | 'quilt' | 'neoforge';
+  defaultVersion: string;
+  theme: 'light' | 'dark' | 'system';
+  language: 'en' | 'ru';
+}
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  settings: UserSettings;
+}
+
+export interface AuthStore {
+  user: User | null;
+  token: string | null;
+  setAuth: (user: User, token: string) => void;
+  logout: () => void;
+  updateUser: (user: User) => void;
+}
