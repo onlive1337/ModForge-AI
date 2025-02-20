@@ -14,10 +14,12 @@ const app = express();
 app.use(cors({
   origin: [
     'https://onlive.is-a.dev',
-    'https://onlive1337.github.io',
-    'http://localhost:5173'
+    'https://onlive.is-a.dev/ModForge-AI',
+    'https://onlive.is-a.dev/ModForge-AI/',
+    'http://localhost:5173',
+    'http://localhost:3000',
   ],
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
   optionsSuccessStatus: 204

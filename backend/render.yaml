@@ -9,5 +9,19 @@ services:
         value: production
       - key: MONGODB_URI
         sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
+    cors:
+      origins:
+        - https://onlive.is-a.dev
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
