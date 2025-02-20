@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from './ui/button';
-import { CardHeader, CardTitle, CardContent } from './ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle
 } from './ui/dialog';
 import {
   Select,
@@ -83,10 +84,11 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
-        <CardHeader>
-          <CardTitle>{t.profile.title}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <DialogHeader>
+          <DialogTitle>{t.profile.title}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">{t.profile.accountInfo}</h3>
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
@@ -186,7 +188,7 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
               {t.profile.logout}
             </Button>
           </div>
-        </CardContent>
+        </div>
       </DialogContent>
     </Dialog>
   );
