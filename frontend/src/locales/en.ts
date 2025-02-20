@@ -67,4 +67,8 @@ profile: {
   systemTheme: 'System',
   logout: 'Log Out'
 },
+ alpha: {
+  badge: 'Early Alpha Version',
+  notice: 'The site is currently in early alpha testing. Bugs and issues may occur.'
+ }
 };

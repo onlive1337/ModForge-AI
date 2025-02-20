@@ -145,12 +145,18 @@ function App() {
           <p className="text-base sm:text-lg text-muted-foreground px-4">
             {t.subtitle}
           </p>
+          <div className="mt-2 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-yellow-500/15 text-yellow-600 dark:bg-yellow-500/25 dark:text-yellow-100">
+            {t.alpha.badge}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t.alpha.notice}
+          </p>
         </div>
 
         <div className="max-w-3xl mx-auto mb-6 sm:mb-8">
           <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A] rounded-lg">
                 <VersionSelect
                   selectedVersion={version}
                   selectedLoader={loader}
@@ -166,7 +172,8 @@ function App() {
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder={t.placeholder}
                   className="w-full h-12 sm:h-[46px] px-4 rounded-lg border 
-                            dark:bg-[#1A1D2A] bg-card border-border text-foreground 
+                            bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]
+                            border-border text-foreground 
                             placeholder:text-muted-foreground focus:outline-none focus:ring-2 
                             ring-primary/20 text-[16px] sm:text-base p-4"
                 />

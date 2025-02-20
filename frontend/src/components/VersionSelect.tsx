@@ -10,13 +10,6 @@ import { cn } from '../lib/utils';
 import type { ModLoader } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 
-interface VersionSelectProps {
-  selectedVersion: string;
-  selectedLoader: ModLoader;
-  onVersionChange: (version: string) => void;
-  onLoaderChange: (loader: ModLoader) => void;
-}
-
 const versions: { version: string; loaders: ModLoader[] }[] = [
   { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
   { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
@@ -47,6 +40,13 @@ const loaderNames: Record<ModLoader, string> = {
   neoforge: 'NeoForge'
 };
 
+interface VersionSelectProps {
+  selectedVersion: string;
+  selectedLoader: ModLoader;
+  onVersionChange: (version: string) => void;
+  onLoaderChange: (loader: ModLoader) => void;
+}
+
 export function VersionSelect({ 
   selectedVersion, 
   selectedLoader,
@@ -75,14 +75,14 @@ export function VersionSelect({
             variant="outline"
             role="combobox"
             aria-expanded={versionOpen}
-            className="w-full sm:w-[220px] justify-between h-12 sm:h-[46px]"
+            className="w-full sm:w-[220px] justify-between h-12 sm:h-[46px] bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]"
           >
             {selectedVersion}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-full sm:w-[220px] p-0" 
+          className="w-full sm:w-[220px] p-0 bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]" 
           align="start"
           side="bottom"
         >
@@ -138,7 +138,7 @@ export function VersionSelect({
             variant="outline"
             role="combobox"
             aria-expanded={loaderOpen}
-            className="w-[140px] justify-between"
+            className="w-[140px] justify-between bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]"
           >
             <span className="flex items-center">
               {loaderIcons[selectedLoader]} <span className="ml-2">{loaderNames[selectedLoader]}</span>
@@ -147,7 +147,7 @@ export function VersionSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-[140px] p-0" 
+          className="w-[140px] p-0 bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]" 
           align="start"
           side="bottom"
         >
