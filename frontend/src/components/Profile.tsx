@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from './ui/button';
 import {
@@ -26,24 +26,8 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
-  const versions = [
-    { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
-    { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
-    { version: '1.20.1', loaders: ['forge', 'fabric', 'quilt'] },
-    { version: '1.19.4', loaders: ['forge', 'fabric', 'quilt'] },
-    { version: '1.19.2', loaders: ['forge', 'fabric', 'quilt'] },
-    { version: '1.18.2', loaders: ['forge', 'fabric', 'quilt'] },
-    { version: '1.17.1', loaders: ['forge', 'fabric'] },
-    { version: '1.16.5', loaders: ['forge', 'fabric'] },
-    { version: '1.15.2', loaders: ['forge', 'fabric'] },
-    { version: '1.14.4', loaders: ['forge', 'fabric'] },
-    { version: '1.12.2', loaders: ['forge'] },
-    { version: '1.8.9', loaders: ['forge'] },
-    { version: '1.7.10', loaders: ['forge'] }
-  ];
-
-  const handleSettingChange = async (setting: string, value: string) => {
-    if (!user) return;
+  const handleSettingChange = useCallback(async (setting: string, value: string) => {
+    if (!user || !token) return;
 
     setLoading(true);
     try {
@@ -72,12 +56,12 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, token, updateUser]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     onClose();
-  };
+  }, [logout, onClose]);
 
   if (!user) return null;
 
@@ -87,7 +71,7 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
         <DialogHeader>
           <DialogTitle>{t.profile.title}</DialogTitle>
         </DialogHeader>
-
+        
         <div className="space-y-6">
           <div className="space-y-2">
             <h3 className="text-lg font-medium">{t.profile.accountInfo}</h3>
@@ -107,11 +91,11 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">{t.profile.defaultLoader}</label>
               <Select
-                value={user.settings.defaultLoader}
-                onValueChange={(value: string) => handleSettingChange('defaultLoader', value)}
+                defaultValue={user.settings.defaultLoader}
+                onValueChange={(value) => handleSettingChange('defaultLoader', value)}
                 disabled={loading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t.profile.selectLoader} />
                 </SelectTrigger>
                 <SelectContent>
@@ -126,11 +110,11 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">{t.profile.defaultVersion}</label>
               <Select
-                value={user.settings.defaultVersion}
-                onValueChange={(value: string) => handleSettingChange('defaultVersion', value)}
+                defaultValue={user.settings.defaultVersion}
+                onValueChange={(value) => handleSettingChange('defaultVersion', value)}
                 disabled={loading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t.profile.selectVersion} />
                 </SelectTrigger>
                 <SelectContent>
@@ -146,11 +130,11 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">{t.profile.theme}</label>
               <Select
-                value={user.settings.theme}
-                onValueChange={(value: string) => handleSettingChange('theme', value)}
+                defaultValue={user.settings.theme}
+                onValueChange={(value) => handleSettingChange('theme', value)}
                 disabled={loading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t.profile.selectTheme} />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,11 +148,11 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">{t.profile.language}</label>
               <Select
-                value={user.settings.language}
-                onValueChange={(value: string) => handleSettingChange('language', value)}
+                defaultValue={user.settings.language}
+                onValueChange={(value) => handleSettingChange('language', value)}
                 disabled={loading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={t.profile.selectLanguage} />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,3 +177,19 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
     </Dialog>
   );
 }
+
+const versions = [
+  { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
+  { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
+  { version: '1.20.1', loaders: ['forge', 'fabric', 'quilt'] },
+  { version: '1.19.4', loaders: ['forge', 'fabric', 'quilt'] },
+  { version: '1.19.2', loaders: ['forge', 'fabric', 'quilt'] },
+  { version: '1.18.2', loaders: ['forge', 'fabric', 'quilt'] },
+  { version: '1.17.1', loaders: ['forge', 'fabric'] },
+  { version: '1.16.5', loaders: ['forge', 'fabric'] },
+  { version: '1.15.2', loaders: ['forge', 'fabric'] },
+  { version: '1.14.4', loaders: ['forge', 'fabric'] },
+  { version: '1.12.2', loaders: ['forge'] },
+  { version: '1.8.9', loaders: ['forge'] },
+  { version: '1.7.10', loaders: ['forge'] }
+];
