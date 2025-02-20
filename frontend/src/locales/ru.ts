@@ -27,7 +27,7 @@ export const ru = {
   notFound: 'Версия не найдена',
   releases: 'Список версий',
   changelog: 'История изменений',
-  copyright: '© 2024 ModForge AI. Все права защищены.'
+  copyright: '© 2025 ModForge AI. Все права защищены.'
 },
 loader: {
   forge: 'Forge',

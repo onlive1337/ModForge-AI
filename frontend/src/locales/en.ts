@@ -27,7 +27,7 @@ export const en = {
   notFound: 'No version found',
   releases: 'Release Notes',
   changelog: 'Changelog',
-  copyright: '© 2024 ModForge AI. All rights reserved.'
+  copyright: '© 2025 ModForge AI. All rights reserved.'
 },
 loader: {
   forge: 'Forge',
