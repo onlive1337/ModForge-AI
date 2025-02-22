@@ -10,20 +10,25 @@ import { cn } from '../lib/utils';
 import type { ModLoader } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 
-const versions: { version: string; loaders: ModLoader[] }[] = [
-  { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
-  { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] },
-  { version: '1.20.1', loaders: ['forge', 'fabric', 'quilt'] },
-  { version: '1.19.4', loaders: ['forge', 'fabric', 'quilt'] },
-  { version: '1.19.2', loaders: ['forge', 'fabric', 'quilt'] },
-  { version: '1.18.2', loaders: ['forge', 'fabric', 'quilt'] },
-  { version: '1.17.1', loaders: ['forge', 'fabric'] },
-  { version: '1.16.5', loaders: ['forge', 'fabric'] },
-  { version: '1.15.2', loaders: ['forge', 'fabric'] },
-  { version: '1.14.4', loaders: ['forge', 'fabric'] },
-  { version: '1.12.2', loaders: ['forge'] },
-  { version: '1.8.9', loaders: ['forge'] },
-  { version: '1.7.10', loaders: ['forge'] },
+interface Version {
+  version: string;
+  loaders: ModLoader[];
+}
+
+export const versions: Version[] = [
+  { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
+  { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
+  { version: '1.20.1', loaders: ['forge', 'fabric', 'quilt'] as ModLoader[] },
+  { version: '1.19.4', loaders: ['forge', 'fabric', 'quilt'] as ModLoader[] },
+  { version: '1.19.2', loaders: ['forge', 'fabric', 'quilt'] as ModLoader[] },
+  { version: '1.18.2', loaders: ['forge', 'fabric', 'quilt'] as ModLoader[] },
+  { version: '1.17.1', loaders: ['forge', 'fabric'] as ModLoader[] },
+  { version: '1.16.5', loaders: ['forge', 'fabric'] as ModLoader[] },
+  { version: '1.15.2', loaders: ['forge', 'fabric'] as ModLoader[] },
+  { version: '1.14.4', loaders: ['forge', 'fabric'] as ModLoader[] },
+  { version: '1.12.2', loaders: ['forge'] as ModLoader[] },
+  { version: '1.8.9', loaders: ['forge'] as ModLoader[] },
+  { version: '1.7.10', loaders: ['forge'] as ModLoader[] }
 ];
 
 const loaderIcons: Record<ModLoader, string> = {
@@ -75,28 +80,34 @@ export function VersionSelect({
             variant="outline"
             role="combobox"
             aria-expanded={versionOpen}
-            className="w-full sm:w-[220px] justify-between h-12 sm:h-[46px] bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]"
+            className="w-full sm:w-[220px] justify-between h-12 sm:h-[46px] !bg-transparent"
           >
             {selectedVersion}
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-full sm:w-[220px] p-0 bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]" 
+          className="w-full sm:w-[220px] p-0" 
           align="start"
           side="bottom"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            backdropFilter: 'blur(8px)'
+          }}
         >
-          <div className="bg-card dark:bg-[#1A1D2A] rounded-md border border-border">
-            <div className="flex items-center border-b border-border px-3">
+          <div className="rounded-md border border-border overflow-hidden">
+            <div className="flex items-center border-b border-border px-3 bg-transparent">
               <search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input
-                className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-11 w-full bg-transparent py-3 text-sm outline-none 
+                         placeholder:text-muted-foreground disabled:cursor-not-allowed 
+                         disabled:opacity-50"
                 placeholder={t.version.search}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="max-h-[300px] overflow-auto no-scrollbar">
+            <div className="max-h-[300px] overflow-auto no-scrollbar bg-transparent">
               {filteredVersions.length === 0 ? (
                 <div className="py-6 text-center text-sm">{t.version.notFound}</div>
               ) : (
@@ -105,7 +116,8 @@ export function VersionSelect({
                     <button
                       key={option.version}
                       className={cn(
-                        "relative flex w-full items-center px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors",
+                        "relative flex w-full items-center px-2 py-1.5 text-sm outline-none transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
                         selectedVersion === option.version && "bg-accent text-accent-foreground"
                       )}
                       onClick={() => {
@@ -138,7 +150,7 @@ export function VersionSelect({
             variant="outline"
             role="combobox"
             aria-expanded={loaderOpen}
-            className="w-[140px] justify-between bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]"
+            className="w-[140px] justify-between !bg-transparent"
           >
             <span className="flex items-center">
               {loaderIcons[selectedLoader]} <span className="ml-2">{loaderNames[selectedLoader]}</span>
@@ -147,17 +159,22 @@ export function VersionSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-[140px] p-0 bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]" 
+          className="w-[140px] p-0" 
           align="start"
           side="bottom"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            backdropFilter: 'blur(8px)'
+          }}
         >
-          <div className="bg-card dark:bg-[#1A1D2A] rounded-md border border-border">
+          <div className="rounded-md border border-border overflow-hidden bg-transparent">
             <div className="flex flex-col">
               {availableLoaders.map((loader) => (
                 <button
                   key={loader}
                   className={cn(
-                    "relative flex w-full items-center px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors",
+                    "relative flex w-full items-center px-2 py-1.5 text-sm outline-none transition-colors",
+                    "hover:bg-accent hover:text-accent-foreground",
                     selectedLoader === loader && "bg-accent text-accent-foreground"
                   )}
                   onClick={() => {

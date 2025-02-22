@@ -156,13 +156,15 @@ function App() {
         <div className="max-w-3xl mx-auto mb-6 sm:mb-8">
           <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A] rounded-lg">
-                <VersionSelect
-                  selectedVersion={version}
-                  selectedLoader={loader}
-                  onVersionChange={setVersion}
-                  onLoaderChange={setLoader}
-                />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="[&_button]:!bg-transparent [&_button]:backdrop-blur-sm [&_[role=combobox]]:!bg-transparent">
+                  <VersionSelect
+                    selectedVersion={version}
+                    selectedLoader={loader}
+                    onVersionChange={setVersion}
+                    onLoaderChange={setLoader}
+                  />
+                </div>
               </div>
               
               <div className="flex-1 min-w-0">
@@ -172,7 +174,7 @@ function App() {
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder={t.placeholder}
                   className="w-full h-12 sm:h-[46px] px-4 rounded-lg border 
-                            bg-white/80 backdrop-blur-sm dark:bg-[#1A1D2A]
+                            bg-transparent backdrop-blur-sm
                             border-border text-foreground 
                             placeholder:text-muted-foreground focus:outline-none focus:ring-2 
                             ring-primary/20 text-[16px] sm:text-base p-4"
