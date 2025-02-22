@@ -6,7 +6,7 @@ import {
   Tag, 
   History,
   ChevronRight,
-  ExternalLink
+  Info
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -20,20 +20,21 @@ const VersionInfo: React.FC<VersionInfoProps> = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <div className="flex flex-col gap-2">
+    <div className="fixed left-4 bottom-4 z-50">
+      <div className="relative">
         <Button
           variant="outline"
           size="sm"
-          className="text-xs relative group"
+          className="text-xs relative group dark:bg-background"
           onClick={() => setIsOpen(!isOpen)}
+          title={`ModForge AI v${VERSION}`}
         >
           <Tag className="w-3.5 h-3.5 mr-1.5 text-blue-500" />
-          v{VERSION}
+          <span className="inline">v{VERSION}</span>
           <motion.div
             animate={{ rotate: isOpen ? 90 : 0 }}
             transition={{ duration: 0.2 }}
-            className="ml-1"
+            className="ml-1 inline"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </motion.div>
@@ -46,51 +47,56 @@ const VersionInfo: React.FC<VersionInfoProps> = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="bg-card dark:bg-[#1A1D2A] rounded-lg border shadow-lg p-4 w-[280px]"
+              className="absolute bottom-full left-0 mb-2 w-[180px] sm:w-[200px]
+                       bg-background dark:bg-background rounded-lg border shadow-lg"
+              style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}
             >
-              <div className="flex flex-col gap-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium text-sm">ModForge AI</h3>
-                    <p className="text-xs text-muted-foreground">v{VERSION}</p>
+              <div className="p-3 space-y-3">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <div className="flex items-center">
+                    <Info className="w-3.5 h-3.5 mr-1.5" />
+                    <div>
+                      <h3 className="text-xs font-medium leading-none">ModForge AI</h3>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">v{VERSION}</p>
+                    </div>
                   </div>
+                </div>
+
+                <div className="space-y-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs"
+                    className="w-full justify-start h-8 text-xs"
                     onClick={() => window.open(GITHUB_URL, '_blank')}
+                    title="Open GitHub repository"
                   >
-                    <Github className="w-4 h-4 mr-1.5" />
-                    GitHub
-                    <ExternalLink className="w-3 h-3 ml-1.5 opacity-50" />
+                    <Github className="w-3.5 h-3.5 mr-2" />
+                    <span className="inline">GitHub</span>
                   </Button>
-                </div>
-
-                <div className="space-y-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start text-xs"
+                    className="w-full justify-start h-8 text-xs"
                     onClick={() => window.open(`${GITHUB_URL}/releases`, '_blank')}
+                    title="View Release Notes"
                   >
-                    <Tag className="w-4 h-4 mr-1.5" />
-                    {t.version.releases}
-                    <ExternalLink className="w-3 h-3 ml-1.5 opacity-50" />
+                    <Tag className="w-3.5 h-3.5 mr-2" />
+                    <span className="inline">{t.version.releases}</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start text-xs"
+                    className="w-full justify-start h-8 text-xs"
                     onClick={() => window.open(`${GITHUB_URL}/blob/master/changelog.md`, '_blank')}
+                    title="View Changelog"
                   >
-                    <History className="w-4 h-4 mr-1.5" />
-                    {t.version.changelog}
-                    <ExternalLink className="w-3 h-3 ml-1.5 opacity-50" />
+                    <History className="w-3.5 h-3.5 mr-2" />
+                    <span className="inline">{t.version.changelog}</span>
                   </Button>
                 </div>
 
-                <div className="border-t pt-2">
-                  <p className="text-[10px] text-muted-foreground">
+                <div className="pt-2 border-t">
+                  <p className="text-[8px] text-muted-foreground">
                     {t.version.copyright}
                   </p>
                 </div>

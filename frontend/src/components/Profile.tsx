@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from './ui/button';
 import {
@@ -9,8 +9,8 @@ import {
   SelectValue
 } from './ui/select';
 import { useTranslation } from '../hooks/useTranslation';
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 
 interface ProfileProps {
   isOpen: boolean;
@@ -21,23 +21,6 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
   const { user, updateUser, token, logout } = useAuthStore();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
 
   const handleSettingChange = async (setting: string, value: string) => {
     if (!user || !token) return;
@@ -95,17 +78,12 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ 
-              duration: 0.2,
-              ease: [0.16, 1, 0.3, 1]
-            }}
+            transition={{ duration: 0.2 }}
             className="relative w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg"
           >
-            <div 
-              ref={modalRef}
-              className="bg-background rounded-lg border shadow-lg p-4 sm:p-6"
-            >
-              <div className="flex justify-between items-center mb-6 sticky top-0 bg-background pt-2 pb-4 border-b z-10">
+            <div className="bg-background dark:bg-background rounded-lg border shadow-lg p-4 sm:p-6">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-6 sticky top-0 bg-background dark:bg-background pt-2 pb-4 border-b z-10">
                 <motion.h2 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -153,10 +131,10 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
                       onValueChange={(value) => handleSettingChange('defaultLoader', value)}
                       disabled={loading}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-background dark:bg-background">
                         <SelectValue placeholder={t.profile.selectLoader} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background dark:bg-background">
                         <SelectItem value="forge">Forge</SelectItem>
                         <SelectItem value="fabric">Fabric</SelectItem>
                         <SelectItem value="quilt">Quilt</SelectItem>
@@ -172,10 +150,10 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
                       onValueChange={(value) => handleSettingChange('defaultVersion', value)}
                       disabled={loading}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-background dark:bg-background">
                         <SelectValue placeholder={t.profile.selectVersion} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background dark:bg-background">
                         {versions.map((item) => (
                           <SelectItem key={item.version} value={item.version}>
                             {item.version}
@@ -192,10 +170,10 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
                       onValueChange={(value) => handleSettingChange('theme', value)}
                       disabled={loading}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-background dark:bg-background">
                         <SelectValue placeholder={t.profile.selectTheme} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background dark:bg-background">
                         <SelectItem value="light">{t.theme.light}</SelectItem>
                         <SelectItem value="dark">{t.theme.dark}</SelectItem>
                         <SelectItem value="system">{t.profile.systemTheme}</SelectItem>
@@ -210,10 +188,10 @@ export function Profile({ isOpen, onClose }: ProfileProps) {
                       onValueChange={(value) => handleSettingChange('language', value)}
                       disabled={loading}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-background dark:bg-background">
                         <SelectValue placeholder={t.profile.selectLanguage} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background dark:bg-background">
                         <SelectItem value="en">English</SelectItem>
                         <SelectItem value="ru">Русский</SelectItem>
                       </SelectContent>
