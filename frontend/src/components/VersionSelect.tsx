@@ -16,6 +16,9 @@ interface Version {
 }
 
 export const versions: Version[] = [
+  { version: '1.21.1', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
+  { version: '1.21', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
+  { version: '1.20.6', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
   { version: '1.20.4', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
   { version: '1.20.2', loaders: ['forge', 'fabric', 'quilt', 'neoforge'] as ModLoader[] },
   { version: '1.20.1', loaders: ['forge', 'fabric', 'quilt'] as ModLoader[] },

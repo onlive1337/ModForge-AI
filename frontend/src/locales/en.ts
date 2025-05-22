@@ -70,5 +70,12 @@ profile: {
  alpha: {
   badge: 'Early Alpha Version',
   notice: 'The site is currently in early alpha testing. Bugs and issues may occur.'
+ },
+ examples: 'Examples',
+ exampleQueries: {
+   tech: 'tech modpack with machines and automation',
+   magic: 'magic mods like botania and thaumcraft',
+   specific: 'create mod with addons',
+   count: '10 mods for survival'
  }
 };

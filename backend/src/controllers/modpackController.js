@@ -4,6 +4,46 @@ const TelegramLogger = require('../services/telegram');
 
 const telegram = new TelegramLogger();
 
+// Функция для расчета релевантности мода
+function calculateRelevance(mod, analysis, userPrompt) {
+  let score = 0;
+  const modTitle = mod.title.toLowerCase();
+  const modDesc = mod.description.toLowerCase();
+  const promptLower = userPrompt.toLowerCase();
+  
+  // Точное совпадение с поисковыми терминами
+  analysis.searchTerms.forEach(term => {
+    const termLower = term.toLowerCase();
+    if (modTitle.includes(termLower)) score += 3;
+    if (modDesc.includes(termLower)) score += 1;
+  });
+  
+  // Совпадение с исходным запросом
+  const promptWords = promptLower.split(/\s+/).filter(w => w.length > 3);
+  promptWords.forEach(word => {
+    if (modTitle.includes(word)) score += 2;
+    if (modDesc.includes(word)) score += 0.5;
+  });
+  
+  // Совпадение с типами модов
+  analysis.modTypes.forEach(type => {
+    if (modTitle.includes(type) || modDesc.includes(type)) score += 1.5;
+  });
+  
+  // Штраф за нерелевантные моды
+  const irrelevantKeywords = ['optimization', 'performance', 'fps', 'library', 'api', 'core'];
+  irrelevantKeywords.forEach(keyword => {
+    if (!promptLower.includes(keyword) && (modTitle.includes(keyword) || modDesc.includes(keyword))) {
+      score -= 2;
+    }
+  });
+  
+  // Бонус за популярность (небольшой)
+  score += Math.log10(mod.downloads + 1) * 0.1;
+  
+  return Math.max(0, score);
+}
+
 exports.generateModpackFromPrompt = async (req, res) => {
   try {
     const { prompt, minecraftVersion = "1.20.1", modLoader = "forge" } = req.body;
@@ -55,9 +95,34 @@ Loader: ${modLoader}`);
     );
     await telegram.logGeneration('Processing', `Found ${uniqueMods.length} unique mods`);
 
+    const promptLower = prompt.toLowerCase();
+    const relevantMods = uniqueMods.filter(mod => {
+      const modTitle = mod.title.toLowerCase();
+      const modDesc = mod.description.toLowerCase();
+      
+      const matchesSearch = analysis.searchTerms.some(term => 
+        modTitle.includes(term.toLowerCase()) || 
+        modDesc.includes(term.toLowerCase())
+      );
+      
+      const isOptimization = modTitle.includes('optim') || modTitle.includes('performance') || 
+                           modTitle.includes('fps') || modDesc.includes('performance');
+      const isLibrary = modTitle.includes('api') || modTitle.includes('library') || 
+                       modTitle.includes('core') || modDesc.includes('library');
+      
+      if (!promptLower.includes('оптимиз') && !promptLower.includes('optim') && 
+          !promptLower.includes('произв') && !promptLower.includes('performance') && 
+          !promptLower.includes('фпс') && !promptLower.includes('fps') && 
+          (isOptimization || isLibrary)) {
+        return false;
+      }
+      
+      return matchesSearch;
+    });
+
     await telegram.logGeneration('Dependencies', 'Checking mod dependencies...');
     const modsWithDependencies = await Promise.all(
-      uniqueMods.map(async (mod) => {
+      relevantMods.map(async (mod) => {
         try {
           const versionInfo = await modrinthService.getVersionInfo(mod.project_id, minecraftVersion, modLoader);
           
@@ -68,6 +133,8 @@ Loader: ${modLoader}`);
 
           const dependencies = await modrinthService.getModDependencies(mod.project_id);
           
+          const relevanceScore = calculateRelevance(mod, analysis, prompt);
+          
           return {
             name: mod.title,
             description: mod.description,
@@ -77,6 +144,7 @@ Loader: ${modLoader}`);
             author: mod.author,
             type: 'mod',
             version: versionInfo?.version_number,
+            relevanceScore,
             dependencies: dependencies.map(dep => ({
               name: dep.project_name || dep.dependency_id,
               slug: dep.project_id,
@@ -92,7 +160,13 @@ Loader: ${modLoader}`);
 
     const validMods = modsWithDependencies
       .filter(mod => mod !== null)
-      .sort((a, b) => b.downloads - a.downloads);
+      .sort((a, b) => {
+        if (Math.abs(a.relevanceScore - b.relevanceScore) > 0.1) {
+          return b.relevanceScore - a.relevanceScore;
+        }
+        return b.downloads - a.downloads;
+      })
+      .map(({ relevanceScore, ...mod }) => mod);
 
     await telegram.logGeneration('Mods', `Successfully processed ${validMods.length} mods`);
 

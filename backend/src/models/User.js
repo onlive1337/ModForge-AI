@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
     defaultVersion: {
       type: String,
-      default: '1.20.4'
+      default: '1.21.1'
     },
     theme: {
       type: String,

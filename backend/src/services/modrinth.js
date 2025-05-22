@@ -43,10 +43,22 @@ class ModrinthService {
       if (version) facets.push([`versions:${version}`]);
       if (loader) facets.push([`categories:${loader.toLowerCase()}`]);
 
+      let enhancedQuery = query;
+      
+      if (query.length < 3 || query === ' ') {
+        enhancedQuery = 'minecraft mod';
+      }
+      
+      enhancedQuery = enhancedQuery
+        .replace(/[^\w\s\-а-яА-Я]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
       const searchParams = {
-        query: query || ' ',
+        query: enhancedQuery,
         facets: JSON.stringify(facets),
-        limit: Math.min(limit, 100)
+        limit: Math.min(limit, 100),
+        index: 'relevance'
       };
 
       console.log('Search params:', searchParams);
@@ -55,7 +67,20 @@ class ModrinthService {
         this.api.get('/search', { params: searchParams })
       );
 
-      return (response.data.hits || []).map(hit => ({
+      const results = (response.data.hits || []).filter(hit => {
+        const isLibrary = hit.categories?.includes('library') || 
+                         hit.title.toLowerCase().includes('api') ||
+                         hit.title.toLowerCase().includes('lib');
+        
+        if (isLibrary && !query.toLowerCase().includes('api') && 
+            !query.toLowerCase().includes('library')) {
+          return false;
+        }
+        
+        return true;
+      });
+
+      return results.map(hit => ({
         ...hit,
         type: 'mod'
       }));

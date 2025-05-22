@@ -14,7 +14,7 @@ import { useUserSettings } from './hooks/useUserSettings';
 
 function App() {
   const [prompt, setPrompt] = useState('');
-  const [version, setVersion] = useState('1.20.4');
+  const [version, setVersion] = useState('1.21.1');
   const [loader, setLoader] = useState<ModLoader>('forge');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,6 +151,25 @@ function App() {
           <p className="mt-1 text-sm text-muted-foreground">
             {t.alpha.notice}
           </p>
+          
+          <div className="mt-4 flex flex-wrap gap-2 justify-center px-4">
+            <span className="text-xs text-muted-foreground">{t.examples}:</span>
+            {[
+              t.exampleQueries.tech,
+              t.exampleQueries.magic,
+              t.exampleQueries.specific,
+              t.exampleQueries.count
+            ].map((example, index) => (
+              <button
+                key={index}
+                onClick={() => setPrompt(example)}
+                className="text-xs px-2 py-1 rounded-full bg-muted hover:bg-muted/80 
+                         text-muted-foreground hover:text-foreground transition-colors"
+              >
+                "{example}"
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="max-w-3xl mx-auto mb-6 sm:mb-8">
