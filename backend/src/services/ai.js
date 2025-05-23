@@ -145,7 +145,7 @@ const analyzePromptWithAI = async (prompt) => {
     const aiPrompt = createPrecisePrompt(userAnalysis);
     
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash-preview-05-20",
       generationConfig: {
         temperature: 0.3,
         topK: 10,
